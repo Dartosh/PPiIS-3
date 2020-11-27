@@ -15,12 +15,6 @@ struct passenger
 	passenger(int number) :
 		_number(number)
 	{}
-
-	const passenger& operator+=(const passenger& r)
-	{
-		return
-			passenger(this->_number + r._number);
-	}
 };
 
 struct cargo
@@ -41,12 +35,32 @@ struct cargo
 class carriage
 {
 public:
+
+	virtual void loading(const int& value) = 0;
+
 protected:
+
 };
 
 class PassengerCarriage : carriage
 {
 public:
+
+	PassengerCarriage()
+	{
+		_passengers._number = 0;
+	}
+
+	PassengerCarriage(const int number)
+	{
+		_passengers._number = number;
+	}
+
+	void loading(const int& value) override
+	{
+		_passengers._number = value;
+	}
+
 protected:
 	passenger _passengers;
 };
@@ -54,15 +68,32 @@ protected:
 class CargoCarriage : carriage
 {
 public:
+
+	CargoCarriage()
+	{
+		_cargo._number = 0;
+	}
+
+	CargoCarriage(const int number)
+	{
+		_cargo._number = number;
+	}
+
+	void loading(const int& value) override
+	{
+		_cargo._number = value;
+	}
+
 protected:
 	cargo _cargo;
 };
+
+
 
 class train
 {
 public:
 protected:
-	carriage _carriages[20];
 };
 
 class station
