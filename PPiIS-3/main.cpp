@@ -1,9 +1,11 @@
 #include <iostream>;
 #include <cstring>;
 #include <vector>;
+#include <queue>
 
 using namespace std;
 
+#define N 10000;
 
 struct passenger
 {
@@ -262,14 +264,14 @@ public:
 		_passengers = 3000;
 		_cargo = 3000;
 		_name = "Minsk";
-		_quantity++;
+		_number++;
 	}
 
-	station(const int cargo, const int passengers, const string name, const int quantity) :
+	station(const int cargo, const int passengers, const string name, const int number) :
 		_cargo(cargo),
 		_passengers(passengers),
 		_name(name),
-		_quantity(quantity)
+		_number(number)
 	{	}
 
 	virtual void loading(train& train, const int& cargo, const int& passengers)
@@ -344,14 +346,19 @@ public:
 		return train.tunloading();
 	}
 
-	virtual string GetNameOfStation()
+	virtual string get_name()
 	{
 		return _name;
 	}
 
+	virtual int get_number() 
+	{
+		return _number;
+	}
+
 	friend class map;
 protected:
-	int _quantity;
+	int _number;
 	string _name;
 	int _passengers;
 	int _cargo;
@@ -419,39 +426,66 @@ class map
 public:
 	map() :
 		_vertexes(0),
-		_edges(0)
+		_edges(0),
+		_graph{0},
+		_stations{}
 	{	}
-	map(const int vertexes, const int edges) :
+	map(const int& vertexes, const int& edges) :
 		_vertexes(vertexes),
-		_edges(edges)
+		_edges(edges),
+		_graph {0},
+		_stations{}
 	{	}
-	void CreateWays()
+
+	int find_station_number(const string& name)
+	{
+		for (int i = 0; i < _stations.size(); i++)
+		{
+			if (name == _stations[i]->get_name())
+				return _stations[i]->get_number();
+			break;
+		}
+	}
+
+	string find_station_name(const int& number)
+	{
+		for (int i = 0; i < _stations.size(); i++)
+		{
+			if (number == _stations[i]->get_number())
+				return _stations[i]->get_name();
+			break;
+		}
+	}
+
+	void create_ways()
 	{
 		for (int i = 0; i < _edges; i++)
 		{
 			string from, to;
 			int weight;
 
-			int dispatch, arrival;
+			int u, v;
 
 			cout << "Write dispatch station: ";
 			cin >> from;
 			for (int k = 0; k < _stations.size(); k++)
 				if (from == _stations[k]->_name)
-					dispatch = _stations[k]->_quantity;
+					u = _stations[k]->_number;
 
 			cout << "Write arrival station: ";
 			cin >> to; 
 			for (int k = 0; k < _stations.size(); k++)
 				if (to == _stations[k]->_name)
-					arrival = _stations[k]->_quantity;
+					v = _stations[k]->_number;
 
 			cout << "Write way length: ";
 			cin >> weight;
+
+			_graph[u][v] = _graph[v][u] = weight;
 		}
 	}
 
-	void CreateStations(const int numbers)
+	void create_stations(const int numbers)
 	{
 		for (int i = 0; i < numbers; i++)
 		{
@@ -466,17 +500,93 @@ public:
 			cout << "\nWrite quantity of passengers: ";
 			cin >> cur->_passengers;
 
-			cur->_quantity = i;
+			cur->_number = i;
 
 			_stations.push_back(cur);
 
 			system("cls");
 		}
 	}
+
+	void get_short_map_of_ways()
+	{
+		int c;
+		string cur;
+		for (int i = 0; i < _edges; i++)
+		{
+			c = 0;
+			for (int k = 0; k < _edges; k++)
+			{
+				if (_graph[i][k])
+				{
+					c++;
+				}
+			}
+
+			cur = find_station_name(i);
+
+			cout << c << " railways are came from " << cur << endl;
+		}
+	}
+
+	void find_a_way(const string& first, const string& seccond)
+	{
+		int from = find_station_number(first);
+		int to = find_station_number(seccond);
+		string to2;
+		vector<int> start(_edges, -1);
+		vector<int> used(_edges, 0);
+		vector<int> dist(_edges);
+
+		bool find = false;
+
+		queue<int> q;
+		q.push(from);
+
+		dist[from] = 0;
+		used[from] = 1;;
+
+		while (!q.empty())
+		{
+			int t = q.front();
+			q.pop();
+
+			for (int i = 0; i < _edges; ++i)
+			{
+				if (_graph[t][i] && !used[i])
+				{
+					dist[i] = dist[t] + _graph[t][i];
+					start[i] = t;
+					q.push(i);
+					used[i] = true;
+				}
+			}
+		}
+
+		if (used[to])
+		{
+			vector<string> path;
+			while (start[to] != -1)
+			{
+				path.push_back(to2 = find_station_name(to));
+				to = start[to];
+			}
+
+			path.push_back(to2 = find_station_name(to));
+
+			cout << "Length of the way: " << dist[to] << endl;
+			cout << "Way:\n";
+			for (int i = path.size() - 1; i >= 0; i--)
+				cout << path[i] << " - ";
+			cout << '\n';
+		}
+		else
+			cout << "\nNo ways from current station to selected station!\n";
+	}
 private:
 	int _vertexes;
 	int _edges;
-	int _graph[30][30];
+	int _graph[30][30]{};
 	vector<station*> _stations;
 };
 
