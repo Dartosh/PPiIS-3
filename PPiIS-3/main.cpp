@@ -1,6 +1,6 @@
 #include <iostream>;
 #include <cstring>;
-#include <typeinfo>;
+#include <vector>;
 
 using namespace std;
 
@@ -190,6 +190,7 @@ protected:
 	CargoCarriage* _carriages;
 };
 
+/*
 class PasCarTrain : public train
 {
 public:
@@ -250,7 +251,7 @@ protected:
 	CargoCarriage* _carriages1;
 	PassengerCarriage* _carriages2;
 };
-
+*/
 
 
 class station
@@ -260,11 +261,15 @@ public:
 	{
 		_passengers = 3000;
 		_cargo = 3000;
+		_name = "Minsk";
+		_quantity++;
 	}
 
-	station(const int cargo, const int passengers) :
+	station(const int cargo, const int passengers, const string name, const int quantity) :
 		_cargo(cargo),
-		_passengers(passengers)
+		_passengers(passengers),
+		_name(name),
+		_quantity(quantity)
 	{	}
 
 	virtual void loading(train& train, const int& cargo, const int& passengers)
@@ -306,6 +311,9 @@ public:
 			}
 		}
 		else if (cargo > 0 && passengers > 0)
+			cout << "\nChoose only one!";
+		/*
+		else if (cargo > 0 && passengers > 0)
 		{
 			if (cargo >= 200 && cargo <= _cargo && passengers >= 200 && passengers <= _passengers)
 			{
@@ -328,6 +336,7 @@ public:
 				_cargo -= cargo;
 			}
 		}
+		*/
 	}
 
 	virtual int unloading(train& train)
@@ -335,36 +344,144 @@ public:
 		return train.tunloading();
 	}
 
+	virtual string GetNameOfStation()
+	{
+		return _name;
+	}
+
+	friend class map;
 protected:
+	int _quantity;
+	string _name;
 	int _passengers;
 	int _cargo;
 };
 
-
+/*
 class railway
 {
 public:
+	railway() :
+		_from("Minsk"),
+		_to("Vitebsk"),
+		_length(200)
+	{	}
+	railway(const string from, const string to, const int length) :
+		_from(from),
+		_to(to),
+		_length(length)
+	{	}
+
+	friend class map;
 protected:
-	station _from;
-	station _to;
-	int _lenght;
+	string _from;
+	string _to;
+	int _length;
+};
+
+class map
+{
+public:
+	void CreateStation(const station& station)
+	{
+		_Stations.push_back(station);
+	}
+	void CreateRailway(const railway& railway)
+	{
+		_Railways.push_back(railway);
+	}
+	void FindAWay(string& from, const string& to)
+	{
+		vector<railway> way;
+		int* buf = new int;
+		string cur;
+		cur = from;
+		for (int i = 0; i < _Railways.size(); i++)
+		{
+			if(cur == _Railways[i]._from)
+			{
+				buf += _Railways[i]._length;
+				way.push_back(_Railways[i]);
+				cur = _Railways[i]._to;
+			}
+		}
+	}
+private:
+	int _dimension;
+	vector<station> _Stations;
+	vector<railway> _Railways;
+};
+*/
+
+
+class map
+{
+public:
+	map() :
+		_vertexes(0),
+		_edges(0)
+	{	}
+	map(const int vertexes, const int edges) :
+		_vertexes(vertexes),
+		_edges(edges)
+	{	}
+	void CreateWays()
+	{
+		for (int i = 0; i < _edges; i++)
+		{
+			string from, to;
+			int weight;
+
+			int dispatch, arrival;
+
+			cout << "Write dispatch station: ";
+			cin >> from;
+			for (int k = 0; k < _stations.size(); k++)
+				if (from == _stations[k]->_name)
+					dispatch = _stations[k]->_quantity;
+
+			cout << "Write arrival station: ";
+			cin >> to; 
+			for (int k = 0; k < _stations.size(); k++)
+				if (to == _stations[k]->_name)
+					arrival = _stations[k]->_quantity;
+
+			cout << "Write way length: ";
+			cin >> weight;
+		}
+	}
+
+	void CreateStations(const int numbers)
+	{
+		for (int i = 0; i < numbers; i++)
+		{
+			station* cur = new station;
+
+			cout << "Write name of the station: ";
+			cin >> cur->_name;
+
+			cout << "\nWrite quantity of cargo: ";
+			cin >> cur->_cargo;
+
+			cout << "\nWrite quantity of passengers: ";
+			cin >> cur->_passengers;
+
+			cur->_quantity = i;
+
+			_stations.push_back(cur);
+
+			system("cls");
+		}
+	}
+private:
+	int _vertexes;
+	int _edges;
+	int _graph[30][30];
+	vector<station*> _stations;
 };
 
 
 int main()
 {
-	CarTrain A;
-	CarTrain B;
-	PasTrain C;
-	PasTrain D;
-	PasCarTrain F;
-	PasCarTrain G;
-
-	station Minsk;
-	station Gomael;
-	station Vitebsk;
-
-	Minsk.loading(A, 450, 0);
-
 	return 0;
 }
