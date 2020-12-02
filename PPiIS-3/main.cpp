@@ -5,8 +5,6 @@
 
 using namespace std;
 
-#define N 10000;
-
 struct passenger
 {
 	int _number;
@@ -113,15 +111,50 @@ protected:
 class train
 {
 public:
+	train() :
+		_name("A"),
+		_type("broken"),
+		_station("Minsk")
+	{	}
+	train(const string& name, const string& type, const string& station) :
+		_name(name),
+		_type(type),
+		_station(station)
+	{	}
 	virtual void tloading(const int& value) = 0;
-	virtual int tunloading() = 0;
+	virtual const int tunloading() = 0;
+	virtual const string get_name()
+	{
+		return _name;
+	}
+	virtual const string get_type()
+	{
+		return _type;
+	}
+	virtual const string get_station()
+	{
+		return _station;
+	}
+	virtual void set_station(const string& name)
+	{
+		_station = name;
+	}
+	friend class map;
 protected:
+	string _type;
+	string _name;
+	string _station;
 };
 
 class PasTrain : public train
 {
 public:
-	PasTrain()
+	PasTrain() : train()
+	{
+		_carriages = new PassengerCarriage[20];
+	}
+
+	PasTrain(const string& _name, const string& _type, const string& station) : train(_name, _type, _station)
 	{
 		_carriages = new PassengerCarriage[20];
 	}
@@ -141,7 +174,7 @@ public:
 		}
 	}
 
-	int tunloading() override
+	int const tunloading() override
 	{
 		int t = 0;
 		for (int i = 0; i < 20; i++)
@@ -155,10 +188,15 @@ protected:
 	PassengerCarriage* _carriages;
 };
 
-class CarTrain : public train
+class CargoTrain : public train
 {
 public:
-	CarTrain()
+	CargoTrain() : train()
+	{
+		_carriages = new CargoCarriage[20];
+	}
+
+	CargoTrain(const string& _name, const string& _type, const string& _station) : train(_name, _type, _station)
 	{
 		_carriages = new CargoCarriage[20];
 	}
@@ -178,7 +216,7 @@ public:
 		}
 	}
 
-	int tunloading() override
+	int const tunloading() override
 	{
 		int t = 0;
 		for (int i = 0; i < 20; i++)
@@ -191,69 +229,31 @@ public:
 protected:
 	CargoCarriage* _carriages;
 };
-
 /*
-class PasCarTrain : public train
+class TrainFactory
 {
 public:
-	PasCarTrain()
-	{
-		_carriages1 = new CargoCarriage[10];
-		_carriages2 = new PassengerCarriage[10];
-	}
-	void tloading(const int& cargo) override
-	{
-		int t = cargo;
-		for (int i = 0; i < 20; i++)
-		{
-			if (t >= 0 || t < 50)
-				_carriages1[i].cloading(t);
-			else if (t >= 50)
-			{
-				t -= 50;
-				_carriages1[i].cloading(50);
-			}
-		}
-	}
-	int addtloading(const int& passengers)
-	{
-		int t = passengers;
-		for (int i = 0; i < 20; i++)
-		{
-			if (t >= 0 || t < 50)
-				_carriages2[i].cloading(t);
-			else if (t >= 50)
-			{
-				t -= 50;
-				_carriages2[i].cloading(50);
-			}
-		}
-		return t;
-	}
-	int tunloading() override
-	{
-		int t = 0;
-		for (int i = 0; i < 20; i++)
-		{
-			t = _carriages1[i].cunloading();
-		}
-		return t;
-	}
-	int addtunloading()
-	{
-		int t = 0;
-		for (int i = 0; i < 20; i++)
-		{
-			t = _carriages2[i].cunloading();
-		}
-		return t;
-	}
+	virtual train create_train(const string& name, const string& type, const string& station) = 0;
+private:
+};
 
-protected:
-	CargoCarriage* _carriages1;
-	PassengerCarriage* _carriages2;
+class PasTrainFactory : public TrainFactory
+{
+public:
+	PasTrain create_train(const string& name, const string& type, const string& station)
+	{
+		PasTrain A(name, "pas", station);
+		return A;
+	}
+private:
+};
+
+class CargoTrainFactory : public TrainFactory
+{
+
 };
 */
+
 
 
 class station
@@ -274,7 +274,7 @@ public:
 		_number(number)
 	{	}
 
-	virtual void loading(train& train, const int& cargo, const int& passengers)
+	void loading(train& train, const int& cargo, const int& passengers)
 	{
 		if (cargo == 0 && passengers > 0)
 		{
@@ -341,85 +341,29 @@ public:
 		*/
 	}
 
-	virtual int unloading(train& train)
+	int unloading(train& train)
 	{
 		return train.tunloading();
 	}
 
-	virtual string get_name()
+	string get_name()
 	{
 		return _name;
 	}
 
-	virtual int get_number() 
+	int get_number() 
 	{
 		return _number;
 	}
 
 	friend class map;
+
 protected:
 	int _number;
 	string _name;
 	int _passengers;
 	int _cargo;
 };
-
-/*
-class railway
-{
-public:
-	railway() :
-		_from("Minsk"),
-		_to("Vitebsk"),
-		_length(200)
-	{	}
-	railway(const string from, const string to, const int length) :
-		_from(from),
-		_to(to),
-		_length(length)
-	{	}
-
-	friend class map;
-protected:
-	string _from;
-	string _to;
-	int _length;
-};
-
-class map
-{
-public:
-	void CreateStation(const station& station)
-	{
-		_Stations.push_back(station);
-	}
-	void CreateRailway(const railway& railway)
-	{
-		_Railways.push_back(railway);
-	}
-	void FindAWay(string& from, const string& to)
-	{
-		vector<railway> way;
-		int* buf = new int;
-		string cur;
-		cur = from;
-		for (int i = 0; i < _Railways.size(); i++)
-		{
-			if(cur == _Railways[i]._from)
-			{
-				buf += _Railways[i]._length;
-				way.push_back(_Railways[i]);
-				cur = _Railways[i]._to;
-			}
-		}
-	}
-private:
-	int _dimension;
-	vector<station> _Stations;
-	vector<railway> _Railways;
-};
-*/
-
 
 class map
 {
@@ -428,13 +372,17 @@ public:
 		_vertexes(0),
 		_edges(0),
 		_graph{0},
-		_stations{}
+		_stations{},
+		_CargoTrains{},
+		_PasTrains{}
 	{	}
 	map(const int& vertexes, const int& edges) :
 		_vertexes(vertexes),
 		_edges(edges),
 		_graph {0},
-		_stations{}
+		_stations{},
+		_CargoTrains{},
+		_PasTrains{}
 	{	}
 
 	int find_station_number(const string& name)
@@ -457,41 +405,35 @@ public:
 		}
 	}
 
-	void create_ways()
+	void create_way()
 	{
-		for (int i = 0; i < _edges; i++)
-		{
-			string from, to;
-			int weight;
-
-			int u, v;
-
-			cout << "Write dispatch station: ";
-			cin >> from;
-			for (int k = 0; k < _stations.size(); k++)
-				if (from == _stations[k]->_name)
-					u = _stations[k]->_number;
-
-			cout << "Write arrival station: ";
-			cin >> to; 
-			for (int k = 0; k < _stations.size(); k++)
-				if (to == _stations[k]->_name)
-					v = _stations[k]->_number;
-
-			cout << "Write way length: ";
-			cin >> weight;
-
-			_graph[u][v] = _graph[v][u] = weight;
-		}
+		string from, to;
+		int weight;
+		int u = 0, v = 0;
+		cout << "\nWrite dispatch station: ";
+		cin >> from;
+		for (int k = 0; k < _stations.size(); k++)
+			if (from == _stations[k]->_name)
+				u = _stations[k]->_number;
+		cout << "\nWrite arrival station: ";
+		cin >> to; 
+		for (int k = 0; k < _stations.size(); k++)
+			if (to == _stations[k]->_name)
+				v = _stations[k]->_number;
+		cout << "\nWrite way length: ";
+		cin >> weight;
+		system("cls");
+		_graph[u][v] = _graph[v][u] = weight;
 	}
 
 	void create_stations(const int numbers)
 	{
+		_edges = numbers;
 		for (int i = 0; i < numbers; i++)
 		{
 			station* cur = new station;
 
-			cout << "Write name of the station: ";
+			cout << "\nWrite name of the " << i + 1 <<" station: ";
 			cin >> cur->_name;
 
 			cout << "\nWrite quantity of cargo: ";
@@ -529,8 +471,46 @@ public:
 		}
 	}
 
-	void find_a_way(const string& first, const string& seccond)
+	station find_station(const string& name)
 	{
+		for (int i = 0; i < _stations.size(); i++)
+		{
+			if (name == _stations[i]->get_name())
+			{
+				return *_stations[i];
+				break;
+			}
+		}
+	}
+
+	void find_a_way(const string& train, const string& seccond)
+	{
+		string first;
+
+		for (int i = 0; i < _CargoTrains.size(); i++)
+		{
+			if (train == _CargoTrains[i].get_name())
+				first = _CargoTrains[i].get_station();
+		}
+
+		for (int i = 0; i < _CargoTrains.size(); i++)
+		{
+			if (train == _CargoTrains[i].get_name())
+				_CargoTrains[i].set_station(seccond);
+		}
+
+		for (int i = 0; i < _CargoTrains.size(); i++)
+		{
+			if (train == _PasTrains[i].get_name())
+				first = _PasTrains[i].get_station();
+		}
+
+		for (int i = 0; i < _PasTrains.size(); i++)
+		{
+			if (train == _PasTrains[i].get_name())
+				_PasTrains[i].set_station(seccond);
+		}
+
 		int from = find_station_number(first);
 		int to = find_station_number(seccond);
 		string to2;
@@ -583,15 +563,81 @@ public:
 		else
 			cout << "\nNo ways from current station to selected station!\n";
 	}
+
+	void create_train(const string& type, const string& name, const string& station)
+	{
+		if (type == "pas")
+		{
+			PasTrain A(name, "pas", station);
+			_PasTrains.push_back(A);
+		}
+		else if (type == "cargo")
+		{
+			CargoTrain A(name, "cargo", station);
+			_CargoTrains.push_back(A);
+		}
+	}
+
+	void get_trains(const string& station)
+	{
+		cout << "Cargo trains:" << endl;
+		for (int i = 0; i < _CargoTrains.size(); i++)
+		{
+			if (station == _CargoTrains[i].get_station())
+				cout << _CargoTrains[i].get_name() << endl;
+		}
+		cout << "Passenger trains:" << endl;
+		for (int i = 0; i < _PasTrains.size(); i++)
+		{
+			if (station == _PasTrains[i].get_station())
+				cout << _PasTrains[i].get_name() << endl;
+		}
+	}
 private:
 	int _vertexes;
 	int _edges;
 	int _graph[30][30]{};
 	vector<station*> _stations;
+	vector<CargoTrain> _CargoTrains;
+	vector<PasTrain> _PasTrains;
 };
 
+void PseudoUI(map World)
+{
+	int c, numb = 0;
+	bool q = true;
+	while (q == true)
+	{
+		cout << "\nSelect operation:" << endl
+			<< "   1. Create stations (out of 30)\n   2. Create ways\n   3. Create train\n   4. Load train\n   5. Unload train\n   6. Move train\n   7. Exit\n\nYour choise: ";
+		cin >> c;
+		system("cls");
+
+		switch (c)
+		{
+		case 1:
+			cout << "\nWrite numbers of stations: ";
+			cin >> numb;
+			system("cls");
+			World.create_stations(numb);
+			break;
+		case 2:
+			World.create_way();
+			break;
+		case 3:
+			string name, type, station;
+			World.create_train()
+		case 4:
+			q = false;
+			break;
+		}
+	}
+	
+}
 
 int main()
 {
+	map World;
+	PseudoUI(World);
 	return 0;
 }
